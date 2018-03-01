@@ -1,0 +1,51 @@
+#!/usr/bin/env python3
+
+# fdupes: remove only files from one subtree
+
+import re
+import os
+
+# generate dupes.txt with:
+# fdupes -rn folder1 folder2 folder2 ... > dupes.txt
+
+# run program:
+# ./remdupes.py | xargs -d '\n' rm
+
+re_tree_stay = re.compile('^folder_with_data_which_should_stay/.*')
+re_tree_kill = re.compile('^folder_where_the_data_should_get_removed/.*')
+
+def contains_stay(dupes):
+    for dupe in dupes:
+        if re_tree_stay.match(dupe):
+            return True
+    return False
+
+def return_kill(dupes):
+    kills = []
+    for dupe in dupes:
+        if re_tree_kill.match(dupe):
+            kills.append(dupe)
+    return kills
+
+def proc_dupes(dupes):
+    kill_dupes = []
+    if contains_stay(dupes):
+        kill_dupes = return_kill(dupes)
+    return kill_dupes
+
+f = open('dupes.txt', 'r')
+
+count = 0
+dupes = []
+duped_size = 0
+for l in f.read().splitlines():
+
+    if l is '':
+        duped_size = duped_size + (len(dupes) - 1) * os.path.getsize(dupes[1])
+        for i in proc_dupes(dupes):
+            print(i)
+        dupes = []
+    else:
+        dupes.append(l)
+
+#print(duped_size)
