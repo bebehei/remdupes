@@ -4,6 +4,7 @@
 
 import re
 import os
+import argparse
 
 # generate dupes.txt with:
 # fdupes -rn folder1 folder2 folder2 ... > dupes.txt
@@ -11,8 +12,21 @@ import os
 # run program:
 # ./remdupes.py | xargs -d '\n' rm
 
-re_tree_stay = re.compile('^folder_with_data_which_should_stay/.*')
-re_tree_kill = re.compile('^folder_where_the_data_should_get_removed/.*')
+
+parser = argparse.ArgumentParser(description='List all duplicates, which match REGEX_KILL and have a duplicate in REGEX_STAY.'
+                                            +' This perfect to remove the files of a foreign tree, which you already have.')
+
+parser.add_argument('--in', dest='input', metavar='file', type=argparse.FileType('r'), default='dupes.txt',
+                    help='Input file (default dupes.txt)')
+parser.add_argument('REGEX_STAY',
+                    help='regular expression of the folder, which has to contain the duplicate')
+parser.add_argument('REGEX_KILL',
+                    help='regular expression of the folder, where the duplicates will get removed')
+
+args = parser.parse_args()
+
+re_tree_stay = re.compile(args.REGEX_STAY)
+re_tree_kill = re.compile(args.REGEX_KILL)
 
 def contains_stay(dupes):
     for dupe in dupes:
@@ -33,12 +47,10 @@ def proc_dupes(dupes):
         kill_dupes = return_kill(dupes)
     return kill_dupes
 
-f = open('dupes.txt', 'r')
-
 count = 0
 dupes = []
 duped_size = 0
-for l in f.read().splitlines():
+for l in args.input.read().splitlines():
 
     if l is '':
         duped_size = duped_size + (len(dupes) - 1) * os.path.getsize(dupes[1])
