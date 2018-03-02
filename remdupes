@@ -3,7 +3,6 @@
 # fdupes: remove only files from one subtree
 
 import re
-import os
 import argparse
 
 # generate dupes.txt with:
@@ -49,15 +48,11 @@ def proc_dupes(dupes):
 
 count = 0
 dupes = []
-duped_size = 0
 for l in args.input.read().splitlines():
 
     if l is '':
-        duped_size = duped_size + (len(dupes) - 1) * os.path.getsize(dupes[1])
         for i in proc_dupes(dupes):
             print(i)
         dupes = []
     else:
         dupes.append(l)
-
-#print(duped_size)
